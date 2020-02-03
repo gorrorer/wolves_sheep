@@ -6,12 +6,15 @@ val evaMatrix = createMatrix(8, 8, 0)
 val listOfWolves = mutableListOf<GameField>()
 val sheep = GameField(4, 7, 2)
 val moveSet = listOf("a", "s", "q", "w")
+var deskCop = desk.clone()
+var listOfWolvesCop = listOfWolves.clone()
+var sheepCop = sheep.clone()
 
 //∎⎕⏹☐■
-fun draw(){
+fun draw(field: Matrix<GameField>){
     for (i in 0..7){
         for (k in 0..7) {
-            if (desk[k, i].type == 0) {
+            if (field[k, i].type == 0) {
                 if (k % 2 == 0 && i % 2 == 0)
                     print("■")
                 if (k % 2 == 1 && i % 2 == 0)
@@ -21,9 +24,9 @@ fun draw(){
                 if (k % 2 == 1 && i % 2 == 1)
                     print("■")
             }
-            if (desk[k, i].type == 1)
+            if (field[k, i].type == 1)
                 print("W")
-            if (desk[k, i].type == 2)
+            if (field[k, i].type == 2)
                 print("S")
             print("  ")
         }
@@ -32,48 +35,47 @@ fun draw(){
 }
 
 fun GameField.move(){
-    var direction = ""
-    direction = readLine()!!
+    val direction = readLine()!!
     if (direction !in moveSet)
         this.move()
-    this.tryMove(direction)
+    this.tryMove(direction, desk)
 }
 
-fun GameField.move(direct: String){
+fun GameField.move(direct: String, field: Matrix<GameField>){
     if (direct !in moveSet)
         throw Exception("Wrong direction")
-    if (this.checkMove(direct))
-        this.tryMove(direct)
+    if (this.checkMove(direct, field))
+        this.tryMove(direct, field)
 }
 
-fun GameField.tryMove(direction: String){
+fun GameField.tryMove(direction: String, field: Matrix<GameField>){
         if (direction == "a"){
-            desk[x, y] = GameField(x, y, 0)
-            desk[x - 1, y + 1] = this
+            field[x, y] = GameField(x, y, 0)
+            field[x - 1, y + 1] = this
             this.prevx = this.x
             this.prevy = this.y
             this.x -= 1
             this.y += 1
         }
         if (direction == "s"){
-            desk[x, y] = GameField(x, y, 0)
-            desk[x + 1, y + 1] = this
+            field[x, y] = GameField(x, y, 0)
+            field[x + 1, y + 1] = this
             this.prevx = this.x
             this.prevy = this.y
             this.x += 1
             this.y += 1
         }
         if (direction == "q"){
-            desk[x, y] = GameField(x, y, 0)
-            desk[x - 1, y - 1] = this
+            field[x, y] = GameField(x, y, 0)
+            field[x - 1, y - 1] = this
             this.prevx = this.x
             this.prevy = this.y
             this.x -= 1
             this.y -= 1
         }
         if (direction == "w"){
-            desk[x, y] = GameField(x, y, 0)
-            desk[x + 1, y - 1] = this
+            field[x, y] = GameField(x, y, 0)
+            field[x + 1, y - 1] = this
             this.prevx = this.x
             this.prevy = this.y
             this.x += 1
@@ -81,29 +83,30 @@ fun GameField.tryMove(direction: String){
         }
 }
 
-fun GameField.backStep(){
-        desk[x, y] = GameField(x, y, 0)
-        desk[prevx, prevy] = this
+fun GameField.backStep(field: Matrix<GameField>){
+        field[x, y] = GameField(x, y, 0)
+        field[prevx, prevy] = this
         x = prevx
         y = prevy
 }
 
-fun GameField.checkMove(direction: String): Boolean {
+fun GameField.checkMove(direction: String, field: Matrix<GameField>): Boolean {
+
     if (direction == "a" && x > 0 && y < 7){
-        if (desk[x - 1, y + 1].type == 0)
-        return true
+        if (field[x - 1, y + 1].type == 0)
+            return true
     }
     if (direction == "s" && x < 7 && y < 7){
-        if (desk[x + 1, y + 1].type == 0)
-        return true
+        if (field[x + 1, y + 1].type == 0)
+            return true
     }
     if (direction == "q" && x > 0 && y > 0){
-        if (desk[x - 1, y - 1].type == 0)
-        return true
+        if (field[x - 1, y - 1].type == 0)
+            return true
     }
     if (direction == "w" && x < 7 && y > 0){
-        if (desk[x + 1, y - 1].type == 0)
-        return true
+        if (field[x + 1, y - 1].type == 0)
+            return true
     }
     return false
 }
@@ -127,20 +130,21 @@ fun game() {
     var bestMove: Pair<Int, String>
     desk[sheep.x, sheep.y] = sheep
 
-    draw()
+    draw(desk)
 
-    while (sheep.checkMove("q") || sheep.checkMove("w") || sheep.checkMove("a") || sheep.checkMove("s")) {
+    while (sheep.checkMove("q", desk) || sheep.checkMove("w", desk)
+        || sheep.checkMove("a", desk) || sheep.checkMove("s", desk)) {
         sheep.move()
-        draw()
-        bestMove = chooseMove()
-        listOfWolves[bestMove.first].move(bestMove.second)
-        draw()
+        deskCop = desk.clone()
+        listOfWolvesCop = listOfWolves.clone()
+        sheepCop = sheep.clone()
+        bestMove = chooseMoveAlt()
+        listOfWolves[bestMove.first].move(bestMove.second, desk)
+        draw(desk)
     }
 }
 
 fun main(){
     readLine()
-    for (i in 0..2047)
-        90+20
     game()
 }

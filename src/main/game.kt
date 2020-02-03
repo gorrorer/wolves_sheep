@@ -1,5 +1,9 @@
 @file:Suppress("UNUSED_PARAMETER", "unused")
 
+package main
+
+import solver.chooseMoveAlt
+
 
 val desk = createMatrix(8, 8, GameField(0, 0, 0))
 val evaMatrix = createMatrix(8, 8, 0)
@@ -9,6 +13,7 @@ val moveSet = listOf("a", "s", "q", "w")
 var deskCop = desk.clone()
 var listOfWolvesCop = listOfWolves.clone()
 var sheepCop = sheep.clone()
+var difficult = 2
 
 //∎⎕⏹☐■
 fun draw(field: Matrix<GameField>){

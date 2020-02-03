@@ -1,5 +1,7 @@
 @file:Suppress("UNUSED_PARAMETER", "unused")
 
+package main
+
 
 data class Cell(val row: Int, val column: Int)
 

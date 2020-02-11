@@ -1,12 +1,14 @@
+@file:Suppress("UNUSED_PARAMETER", "unused")
+
 package solver
 
 import main.*
 
-var treeOfMoves = listOf<Condition>()
+var treeOfMoves = mutableListOf<Condition>()
 var counter = difficult
 
 
-fun createLevel(condition: Condition): List<Condition> {
+fun createLevel(condition: Condition): MutableList<Condition> {
 
     val listOfConditions = mutableListOf<Condition>()
 
@@ -24,14 +26,14 @@ fun createLevel(condition: Condition): List<Condition> {
             }
         }
     }
-    return listOfConditions
+    return listOfConditions.toMutableList()
 }
 
 
 fun createResultsTree(level: MutableList<List<Condition>>): Boolean {
 
     val actualLevel = mutableListOf<List<Condition>>()
-    var actualList: List<Condition>
+    var actualList: MutableList<Condition>
     var sheepCopy: GameField
     var deskCopy: Matrix<GameField>
 
@@ -67,52 +69,82 @@ fun createResultsTree(level: MutableList<List<Condition>>): Boolean {
         counter--
         createResultsTree(actualLevel)
     }
-    return true
+    return false
 }
 
 fun createResultsTree(){
     createResultsTree(mutableListOf())
 }
 
-fun analyzePath(level: MutableList<List<Condition>>): Int {
 
-    var result = Int.MAX_VALUE
+fun sheepBestMove(condition: Condition): Int{
+
+    var bestMove = Int.MAX_VALUE
+    var currentMove: Int
+
+    for (sheepDir in moveSet){
+        if (condition.sheep.checkMove(sheepDir, condition.field)){
+            condition.sheep.move(sheepDir, condition.field)
+            currentMove = evaluate(condition.field, condition.sheep)
+            condition.sheep.backStep(condition.field)
+            if (currentMove < bestMove){
+                bestMove = currentMove
+            }
+        }
+    }
+    return bestMove
+}
+
+
+fun analyzePath(level: List<List<Condition>>) {
+
     var actualLevel = mutableListOf<List<Condition>>()
-    var sheepCopy: GameField
-    var deskCopy: Matrix<GameField>
-    var actualResult: Int
+    var minMoveCount = Int.MAX_VALUE
+    var maxMoveCount = 0
 
-    if (counter > 1) {
-        for (i in level) {
-            for (k in i) {
+    if (counter > 1){
+        counter--
+        for (i in level){
+            for (k in i){
                 actualLevel = actualLevel.plus(k.getChildren()).toMutableList()
             }
         }
-        counter--
         analyzePath(actualLevel)
-    } else {
-        for (i in level) {
-            for (k in i) {
-                for (dir in moveSet) {
-                    sheepCopy = k.sheep.clone()
-                    deskCopy = k.field.clone()
-                    sheepCopy.move(dir, deskCopy)
-                    actualResult = evaluate(deskCopy, sheepCopy)
-                    if (actualResult < result)
-                        result = actualResult
+    }
+
+    if (counter == difficult)
+        for (i in level){
+            for (k in i){
+                for (children in k.children){
+                    for (l in children){
+                        if (l.movesToWin > maxMoveCount){
+                            maxMoveCount = l.movesToWin
+                        }
+                    }
+                    if (minMoveCount > maxMoveCount){
+                        minMoveCount = maxMoveCount
+                    }
+                    maxMoveCount = 0
                 }
+                k.movesToWin = minMoveCount
+                minMoveCount = Int.MAX_VALUE
+            }
+        }
+
+    if (counter == 1){
+        for (i in level){
+            for (k in i){
+                k.movesToWin = sheepBestMove(k)
             }
         }
         counter = difficult
-        return result
     }
-    return 0
 }
 
-fun analyzePath(condition: Condition) = analyzePath(mutableListOf(listOf(condition)))
+fun analyzePath(condition: Condition) = analyzePath(listOf(listOf(condition)))
 
 
-fun chooseMoveAlt2(): Pair<Int, String> {
+fun chooseMoveAlt(): Pair<Int, String> {
 
     createResultsTree()
     val resultsTree = treeOfMoves
@@ -121,53 +153,12 @@ fun chooseMoveAlt2(): Pair<Int, String> {
     var actualMoveCount: Int
 
     for (i in resultsTree){
-        actualMoveCount = analyzePath(i)
+        analyzePath(i)
+        actualMoveCount = i.movesToWin
         if (actualMoveCount > maxMoveCount){
             maxMoveCount = actualMoveCount
             rightNumber = resultsTree.indexOf(i)
         }
-    }
-
-    return Pair(resultsTree[rightNumber].wolfNumber, resultsTree[rightNumber].direction)
-}
-
-
-fun chooseMoveAlt(): Pair<Int, String> {
-
-    createResultsTree()
-    val resultsTree = treeOfMoves
-    var minMoveCountLevel2 = Int.MAX_VALUE
-    var minMoveCountLevel1 = Int.MAX_VALUE
-    var moveCountLevel2 = 0
-    var maxMoveCounter = 0
-    var rightNumber = 0
-    var actualMoveLevel1: Int
-
-    for (i1 in resultsTree) {
-        for (k1 in i1.children) {
-            for (i2 in k1) {
-                for (dir in moveSet) {
-                    i2.sheep.move(dir, i2.field)
-                    actualMoveLevel1 = evaluate(i2.field, i2.sheep)
-                    if (actualMoveLevel1 < minMoveCountLevel2)
-                        minMoveCountLevel2 = actualMoveLevel1
-                    i2.sheep.backStep(i2.field)
-                }
-                if (moveCountLevel2 < minMoveCountLevel2) {
-                    moveCountLevel2 = minMoveCountLevel2
-                }
-                minMoveCountLevel2 = Int.MAX_VALUE
-            }
-            if (minMoveCountLevel1 > moveCountLevel2) {
-                minMoveCountLevel1 = moveCountLevel2
-            }
-            moveCountLevel2 = 0
-        }
-        if (minMoveCountLevel1 > maxMoveCounter) {
-            maxMoveCounter = minMoveCountLevel1
-            rightNumber = resultsTree.indexOf(i1)
-        }
-        minMoveCountLevel1 = Int.MAX_VALUE
     }
 
     return Pair(resultsTree[rightNumber].wolfNumber, resultsTree[rightNumber].direction)

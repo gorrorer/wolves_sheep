@@ -2,7 +2,7 @@
 
 package main
 
-import solver.chooseMoveAlt
+import solver.*
 
 
 val desk = createMatrix(8, 8, GameField(0, 0, 0))
@@ -137,8 +137,8 @@ fun game() {
 
     draw(desk)
 
-    while (sheep.checkMove("q", desk) || sheep.checkMove("w", desk)
-        || sheep.checkMove("a", desk) || sheep.checkMove("s", desk)) {
+    while ((sheep.checkMove("q", desk) || sheep.checkMove("w", desk)
+        || sheep.checkMove("a", desk) || sheep.checkMove("s", desk)) && (sheep.y != 0)) {
         sheep.move()
         deskCop = desk.clone()
         listOfWolvesCop = listOfWolves.clone()
